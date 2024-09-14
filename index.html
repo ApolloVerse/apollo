@@ -7,8 +7,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
     <style>
+        body {
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: inherit;
+            filter: blur(5px);
+            z-index: -1;
+        }
         .form-container {
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -26,10 +44,10 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino - APOLLO</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
                 
                 <form id="productForm">
                     <div class="row mb-3">
@@ -75,6 +93,12 @@
                 <div id="productDetails"></div>
 
                 <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
+
+                <div class="mt-4">
+                    <h3>Configurações de Fundo</h3>
+                    <input type="file" id="backgroundImage" accept="image/*" class="form-control mb-2">
+                    <button id="clearBackground" class="btn btn-secondary">Limpar Fundo</button>
+                </div>
             </div>
         </div>
     </div>
@@ -90,6 +114,12 @@
             if (savedProducts) {
                 products = JSON.parse(savedProducts);
                 updateProductSelect();
+            }
+
+            // Carregar imagem de fundo salva
+            const backgroundImage = localStorage.getItem('backgroundImage');
+            if (backgroundImage) {
+                document.body.style.backgroundImage = `url(${backgroundImage})`;
             }
         }
 
@@ -126,7 +156,7 @@
             updateProductSelect();
             showSuccessMessage();
             saveToLocalStorage();
-            this.reset();  // Limpa todos os campos após salvar
+            this.reset();
         });
 
         function updateProductSelect() {
@@ -162,13 +192,12 @@
                 `);
                 deleteButton.show();
 
-                // Preencher o formulário com os dados do produto selecionado
                 $('#produto').val(this.value);
                 $('#repeticao').val(product.repeticao);
                 $('#chagrim').val(product.chagrim);
                 $('#corte').val(product.corte);
                 $('#velocidade').val(product.velocidade);
-                $('#observacoes').val('');  // Limpa o campo de observações
+                $('#observacoes').val('');
             } else {
                 productDetails.html('');
                 deleteButton.hide();
@@ -215,6 +244,25 @@
             if ($(this).val().length > 4) {
                 $(this).val($(this).val().slice(0, 4));
             }
+        });
+
+        // Funcionalidade de imagem de fundo
+        $('#backgroundImage').on('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = event.target.result;
+                document.body.style.backgroundImage = `url(${img})`;
+                localStorage.setItem('backgroundImage', img);
+            }
+
+            reader.readAsDataURL(file);
+        });
+
+        $('#clearBackground').on('click', function() {
+            document.body.style.backgroundImage = 'none';
+            localStorage.removeItem('backgroundImage');
         });
 
         loadFromLocalStorage();
