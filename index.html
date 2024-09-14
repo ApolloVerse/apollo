@@ -28,28 +28,28 @@
                 
                 <form id="productForm">
                     <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="col-md-8 mb-3 mb-md-0">
                             <input type="text" class="form-control" id="produto" placeholder="Produto" required>
                         </div>
                         <div class="col-md-2 mb-3 mb-md-0">
-                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required>
+                            <input type="number" class="form-control" id="repeticao" placeholder="Rep." required maxlength="4" style="width: 80px;">
                         </div>
-                        <div class="col-md-2 mb-3 mb-md-0">
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any" maxlength="4" style="width: 80px;">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
                             <select class="form-select" id="chagrim">
                                 <option value="">Chagrim</option>
                                 <option value="Sim">Sim</option>
                                 <option value="Não">Não</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <input type="text" class="form-control" id="observacoes" placeholder="Observações">
                         </div>
                     </div>
@@ -80,10 +80,24 @@
     <script>
         let products = {};
 
+        // Carregar dados do localStorage
+        function loadFromLocalStorage() {
+            const savedProducts = localStorage.getItem('products');
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+                updateProductSelect();
+            }
+        }
+
+        // Salvar dados no localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
         $('#productForm').on('submit', function(e) {
             e.preventDefault();
             
-            const produto = $('#produto').val();
+            const produto = $('#produto').val().toUpperCase();
             const repeticao = $('#repeticao').val();
             const chagrim = $('#chagrim').val();
             const corte = $('#corte').val();
@@ -108,6 +122,7 @@
 
             updateProductSelect();
             showSuccessMessage();
+            saveToLocalStorage();
             this.reset();
         });
 
@@ -165,6 +180,7 @@
                 $('#productDetails').html('');
                 $(this).hide();
                 $('#productForm')[0].reset();
+                saveToLocalStorage();
             }
         });
 
@@ -174,6 +190,7 @@
             const produto = $('#productSelect').val();
             products[produto].observacoes.splice(index, 1);
             $('#productSelect').trigger('change');  // Atualiza a exibição
+            saveToLocalStorage();
         });
 
         // Autocomplete para o campo de produto
@@ -188,6 +205,21 @@
                 $('#productSelect').val(ui.item.value).trigger('change');
             }
         });
+
+        // Converter texto do produto para maiúsculas
+        $('#produto').on('input', function() {
+            $(this).val($(this).val().toUpperCase());
+        });
+
+        // Limitar o número de caracteres nos campos de repetição e corte
+        $('#repeticao, #corte').on('input', function() {
+            if ($(this).val().length > 4) {
+                $(this).val($(this).val().slice(0, 4));
+            }
+        });
+
+        // Carregar dados ao iniciar a página
+        loadFromLocalStorage();
     </script>
 </body>
 </html>
