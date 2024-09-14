@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APOLLO</title>
+    <title>APOLLO - Lino</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
     <style>
@@ -13,6 +13,9 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
         }
         body::before {
             content: '';
@@ -27,13 +30,13 @@
         }
         .form-container {
             background-color: rgba(248, 249, 250, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         .delete-comment {
             cursor: pointer;
-            color: red;
+            color: #dc3545;
             margin-left: 10px;
         }
         .form-control-sm {
@@ -44,39 +47,42 @@
     </style>
 </head>
 <body>
-    <div class="container mt-4">
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+            <div class="col-lg-10 form-container">
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino - Apollo</h2>
                 
-                <form id="productForm">
-                    <div class="row mb-3">
-                        <div class="col-md-8 mb-3 mb-md-0">
+                <form id="productForm" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
                             <input type="text" class="form-control" id="produto" placeholder="Produto" required>
                         </div>
-                        <div class="col-md-2 mb-3 mb-md-0">
-                            <input type="number" class="form-control form-control-sm" id="repeticao" placeholder="Rep." required maxlength="4">
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required maxlength="4">
                         </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control form-control-sm" id="corte" placeholder="Corte" step="any" maxlength="4">
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any" maxlength="4">
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="col-md-3">
                             <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="perimetro" placeholder="Perímetro">
+                        </div>
+                        <div class="col-md-3">
                             <select class="form-select" id="chagrim">
                                 <option value="">Chagrim</option>
                                 <option value="Sim">Sim</option>
                                 <option value="Não">Não</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="text" class="form-control" id="observacoes" placeholder="Observações">
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
                 </form>
 
                 <div id="successMessage" class="alert alert-success mt-3" role="alert" style="display: none;">
@@ -90,15 +96,12 @@
                     </select>
                 </div>
 
-                <div id="productDetails"></div>
+                <div id="productDetails" class="mt-3"></div>
 
                 <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
 
-                <div class="mt-4">
-                    <h3>Configurações de Fundo</h3>
-                    <input type="file" id="backgroundImage" accept="image/*" class="form-control mb-2">
-                    <button id="clearBackground" class="btn btn-secondary">Limpar Fundo</button>
-                </div>
+                <!-- Campo de imagem de fundo oculto -->
+                <input type="file" id="backgroundImage" accept="image/*" style="display: none;">
             </div>
         </div>
     </div>
@@ -116,7 +119,6 @@
                 updateProductSelect();
             }
 
-            // Carregar imagem de fundo salva
             const backgroundImage = localStorage.getItem('backgroundImage');
             if (backgroundImage) {
                 document.body.style.backgroundImage = `url(${backgroundImage})`;
@@ -135,6 +137,7 @@
             const chagrim = $('#chagrim').val();
             const corte = $('#corte').val();
             const velocidade = $('#velocidade').val();
+            const perimetro = $('#perimetro').val();
             const observacoes = $('#observacoes').val();
 
             if (!products[produto]) {
@@ -143,6 +146,7 @@
                     chagrim: chagrim,
                     corte: corte,
                     velocidade: velocidade,
+                    perimetro: perimetro,
                     observacoes: [observacoes],
                 };
             } else {
@@ -150,6 +154,7 @@
                 products[produto].chagrim = chagrim;
                 products[produto].corte = corte;
                 products[produto].velocidade = velocidade;
+                products[produto].perimetro = perimetro;
                 products[produto].observacoes.unshift(observacoes);
             }
 
@@ -187,6 +192,7 @@
                     <p><strong>Chagrim:</strong> ${product.chagrim}</p>
                     <p><strong>Corte:</strong> ${product.corte}</p>
                     <p><strong>Velocidade:</strong> ${product.velocidade}</p>
+                    <p><strong>Perímetro:</strong> ${product.perimetro}</p>
                     <h5>Observações:</h5>
                     ${observacoesHtml}
                 `);
@@ -197,6 +203,7 @@
                 $('#chagrim').val(product.chagrim);
                 $('#corte').val(product.corte);
                 $('#velocidade').val(product.velocidade);
+                $('#perimetro').val(product.perimetro);
                 $('#observacoes').val('');
             } else {
                 productDetails.html('');
@@ -246,7 +253,6 @@
             }
         });
 
-        // Funcionalidade de imagem de fundo
         $('#backgroundImage').on('change', function(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
@@ -258,11 +264,6 @@
             }
 
             reader.readAsDataURL(file);
-        });
-
-        $('#clearBackground').on('click', function() {
-            document.body.style.backgroundImage = 'none';
-            localStorage.removeItem('backgroundImage');
         });
 
         loadFromLocalStorage();
