@@ -1,10 +1,117 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- O conteúdo do head permanece o mesmo -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APOLLO - Lino</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
+    <style>
+        body {
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: inherit;
+            filter: blur(5px);
+            z-index: -1;
+        }
+        .form-container {
+            background-color: rgba(248, 249, 250, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .delete-comment {
+            cursor: pointer;
+            color: #dc3545;
+            margin-left: 10px;
+        }
+        .form-control-sm {
+            height: calc(1.5em + 0.5rem + 2px);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
 </head>
 <body>
-    <!-- O conteúdo do body permanece o mesmo até a tag de script -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 form-container">
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+                
+                <form id="productForm" class="mb-4">
+                    <div class="row g-3">
+                        <!-- Produto (sempre em uma linha separada) -->
+                        <div class="col-12 col-md-6">
+                            <input type="text" class="form-control" id="produto" placeholder="Produto" required>
+                        </div>
+                        
+                        <!-- Repetição, Corte, Perímetro -->
+                        <div class="col-4 col-md-2">
+                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required maxlength="4">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any" maxlength="4">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <input type="text" class="form-control" id="perimetro" placeholder="Perímetro">
+                        </div>
+                        
+                        <!-- Velocidade e Chagrim -->
+                        <div class="col-6 col-md-3">
+                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <select class="form-select" id="chagrim">
+                                <option value="">Chagrim</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Observações (sempre em uma linha separada) -->
+                        <div class="col-12">
+                            <input type="text" class="form-control" id="observacoes" placeholder="Observações">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+
+                <div id="successMessage" class="alert alert-success mt-3" role="alert" style="display: none;">
+                    Dados salvos com sucesso!
+                </div>
+
+                <div class="mt-4">
+                    <h3>Histórico de Produtos</h3>
+                    <select id="productSelect" class="form-select mb-3">
+                        <option value="">Selecione um produto</option>
+                    </select>
+                </div>
+
+                <div id="productDetails" class="mt-3"></div>
+
+                <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
+
+                <!-- Campo de imagem de fundo oculto -->
+                <input type="file" id="backgroundImage" accept="image/*" style="display: none;">
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
