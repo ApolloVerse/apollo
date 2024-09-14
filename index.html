@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulário de Produto</title>
+    <title>APOLLO</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
     <style>
@@ -18,13 +18,18 @@
             color: red;
             margin-left: 10px;
         }
+        .form-control-sm {
+            height: calc(1.5em + 0.5rem + 2px);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Formulário de Produto</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino - APOLLO</h2>
                 
                 <form id="productForm">
                     <div class="row mb-3">
@@ -32,10 +37,10 @@
                             <input type="text" class="form-control" id="produto" placeholder="Produto" required>
                         </div>
                         <div class="col-md-2 mb-3 mb-md-0">
-                            <input type="number" class="form-control" id="repeticao" placeholder="Rep." required maxlength="4" style="width: 80px;">
+                            <input type="number" class="form-control form-control-sm" id="repeticao" placeholder="Rep." required maxlength="4">
                         </div>
                         <div class="col-md-2">
-                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any" maxlength="4" style="width: 80px;">
+                            <input type="number" class="form-control form-control-sm" id="corte" placeholder="Corte" step="any" maxlength="4">
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -80,7 +85,6 @@
     <script>
         let products = {};
 
-        // Carregar dados do localStorage
         function loadFromLocalStorage() {
             const savedProducts = localStorage.getItem('products');
             if (savedProducts) {
@@ -89,7 +93,6 @@
             }
         }
 
-        // Salvar dados no localStorage
         function saveToLocalStorage() {
             localStorage.setItem('products', JSON.stringify(products));
         }
@@ -123,7 +126,7 @@
             updateProductSelect();
             showSuccessMessage();
             saveToLocalStorage();
-            this.reset();
+            this.reset();  // Limpa todos os campos após salvar
         });
 
         function updateProductSelect() {
@@ -184,16 +187,14 @@
             }
         });
 
-        // Função para deletar um comentário específico
         $(document).on('click', '.delete-comment', function() {
             const index = $(this).data('index');
             const produto = $('#productSelect').val();
             products[produto].observacoes.splice(index, 1);
-            $('#productSelect').trigger('change');  // Atualiza a exibição
+            $('#productSelect').trigger('change');
             saveToLocalStorage();
         });
 
-        // Autocomplete para o campo de produto
         $('#produto').autocomplete({
             source: function(request, response) {
                 var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
@@ -206,19 +207,16 @@
             }
         });
 
-        // Converter texto do produto para maiúsculas
         $('#produto').on('input', function() {
             $(this).val($(this).val().toUpperCase());
         });
 
-        // Limitar o número de caracteres nos campos de repetição e corte
         $('#repeticao, #corte').on('input', function() {
             if ($(this).val().length > 4) {
                 $(this).val($(this).val().slice(0, 4));
             }
         });
 
-        // Carregar dados ao iniciar a página
         loadFromLocalStorage();
     </script>
 </body>
