@@ -50,7 +50,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino APOLLO</h2>
                 
                 <form id="productForm" class="mb-4">
                     <div class="row g-3">
@@ -64,7 +64,7 @@
                             <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required maxlength="4">
                         </div>
                         <div class="col-4 col-md-2">
-                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any" maxlength="4">
+                            <input type="text" class="form-control" id="corte" placeholder="Corte" step="any">
                         </div>
                         <div class="col-4 col-md-2">
                             <input type="text" class="form-control" id="perimetro" placeholder="Perímetro">
@@ -136,15 +136,19 @@
             localStorage.setItem('products', JSON.stringify(products));
         }
 
+        function parseDecimalInput(value) {
+            return parseFloat(value.replace(',', '.'));
+        }
+
         $('#productForm').on('submit', function(e) {
             e.preventDefault();
             
             const produto = $('#produto').val().toUpperCase();
             const repeticao = $('#repeticao').val();
             const chagrim = $('#chagrim').val();
-            const corte = $('#corte').val();
+            const corte = parseDecimalInput($('#corte').val());
             const velocidade = $('#velocidade').val();
-            const perimetro = $('#perimetro').val();
+            const perimetro = parseDecimalInput($('#perimetro').val());
             const observacoes = $('#observacoes').val();
 
             if (!products[produto]) {
@@ -256,10 +260,14 @@
             $(this).val($(this).val().toUpperCase());
         });
 
-        $('#repeticao, #corte').on('input', function() {
+        $('#repeticao').on('input', function() {
             if ($(this).val().length > 4) {
                 $(this).val($(this).val().slice(0, 4));
             }
+        });
+
+        $('#corte, #perimetro').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9,.-]/g, ''));
         });
 
         $('#backgroundImage').on('change', function(e) {
