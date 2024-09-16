@@ -40,7 +40,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10 form-container">
-                <h2 class="text-center mb-4">Lino</h2>
+                <h2 class="text-center mb-4">Lino APOLLO</h2>
                 
                 <form id="productForm" class="mb-4">
                     <div class="row g-3">
@@ -97,6 +97,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
 
     <script>
+        // Importando os módulos necessários do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getDatabase, ref, set, get, child, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
         // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAuKapVSN3xzNydWnTYFyF74tWep6KSfOk",
@@ -109,22 +113,20 @@
         };
 
         // Inicializando o Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        const productsRef = database.ref('products');
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
         // Função para salvar os dados no Firebase
-        $('#productForm').on('submit', function (e) {
+        document.getElementById('productForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const produto = $('#produto').val().toUpperCase();
-            const repeticao = $('#repeticao').val();
-            const chagrim = $('#chagrim').val();
-            const corte = parseFloat($('#corte').val());
-            const velocidade = $('#velocidade').val();
-            const perimetro = parseFloat($('#perimetro').val());
-            const observacoes = $('#observacoes').val();
+            const produto = document.getElementById('produto').value.toUpperCase();
+            const repeticao = document.getElementById('repeticao').value;
+            const chagrim = document.getElementById('chagrim').value;
+            const corte = parseFloat(document.getElementById('corte').value);
+            const velocidade = document.getElementById('velocidade').value;
+            const perimetro = parseFloat(document.getElementById('perimetro').value);
+            const observacoes = document.getElementById('observacoes').value;
 
             const newProduct = {
                 repeticao,
@@ -135,80 +137,84 @@
                 observacoes: [observacoes],
             };
 
-            productsRef.child(produto).set(newProduct)
+            set(ref(database, 'products/' + produto), newProduct)
                 .then(() => {
                     showSuccessMessage();
                     updateProductSelect();
+                })
+                .catch(error => {
+                    console.error('Erro ao salvar os dados:', error);
                 });
 
             this.reset();
         });
 
-        // Função para carregar e exibir os produtos
-        function updateProductSelect() {
-            productsRef.once('value', snapshot => {
-                const products = snapshot.val();
-                const select = $('#productSelect');
-                select.html('<option value="">Selecione um produto</option>');
+        // Função para mostrar a mensagem de sucesso
+        function showSuccessMessage() {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            setTimeout(() => successMessage.style.display = 'none', 3000);
+        }
 
-                for (let produto in products) {
-                    select.append(`<option value="${produto}">${produto}</option>`);
+        // Função para atualizar o select de produtos
+        function updateProductSelect() {
+            const productSelect = document.getElementById('productSelect');
+            get(child(ref(database), 'products')).then(snapshot => {
+                if (snapshot.exists()) {
+                    const products = snapshot.val();
+                    productSelect.innerHTML = '<option value="">Selecione um produto</option>';
+                    for (let key in products) {
+                        productSelect.innerHTML += `<option value="${key}">${key}</option>`;
+                    }
                 }
+            }).catch(error => {
+                console.error('Erro ao carregar os produtos:', error);
             });
         }
 
-        // Exibir detalhes do produto selecionado
-        $('#productSelect').on('change', function () {
-            const productDetails = $('#productDetails');
-            const deleteButton = $('#deleteProduct');
+        // Função para exibir detalhes do produto selecionado
+        document.getElementById('productSelect').addEventListener('change', function () {
             const produto = this.value;
-
             if (produto) {
-                productsRef.child(produto).once('value', snapshot => {
-                    const product = snapshot.val();
-                    if (product) {
-                        let observacoesHtml = product.observacoes.map((obs, index) =>
-                            `<p>${index + 1}. ${obs}</p>`
-                        ).join('');
-
-                        productDetails.html(`
-                            <h4>${produto}</h4>
+                get(child(ref(database), 'products/' + produto)).then(snapshot => {
+                    if (snapshot.exists()) {
+                        const product = snapshot.val();
+                        document.getElementById('productDetails').innerHTML = `
                             <p><strong>Repetição:</strong> ${product.repeticao}</p>
-                            <p><strong>Chagrim:</strong> ${product.chagrim}</p>
                             <p><strong>Corte:</strong> ${product.corte}</p>
                             <p><strong>Velocidade:</strong> ${product.velocidade}</p>
                             <p><strong>Perímetro:</strong> ${product.perimetro}</p>
-                            <h5>Observações:</h5>
-                            ${observacoesHtml}
-                        `);
-
-                        deleteButton.show();
+                            <p><strong>Chagrim:</strong> ${product.chagrim}</p>
+                            <p><strong>Observações:</strong> ${product.observacoes.join(', ')}</p>
+                        `;
+                        document.getElementById('deleteProduct').style.display = 'block';
                     }
+                }).catch(error => {
+                    console.error('Erro ao carregar detalhes do produto:', error);
                 });
             } else {
-                productDetails.html('');
-                deleteButton.hide();
+                document.getElementById('productDetails').innerHTML = '';
+                document.getElementById('deleteProduct').style.display = 'none';
             }
         });
 
-        // Função para deletar o produto
-        $('#deleteProduct').on('click', function () {
-            const produto = $('#productSelect').val();
-            if (produto) {
-                productsRef.child(produto).remove()
+        // Função para deletar o produto selecionado
+        document.getElementById('deleteProduct').addEventListener('click', function () {
+            const produto = document.getElementById('productSelect').value;
+            if (produto && confirm('Tem certeza que deseja excluir este produto?')) {
+                remove(ref(database, 'products/' + produto))
                     .then(() => {
                         updateProductSelect();
-                        $('#productDetails').html('');
-                        $(this).hide();
+                        document.getElementById('productDetails').innerHTML = '';
+                        document.getElementById('deleteProduct').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Erro ao deletar o produto:', error);
                     });
             }
         });
 
-        function showSuccessMessage() {
-            $('#successMessage').show().delay(3000).fadeOut();
-        }
-
-        // Carregar os produtos no início
+        // Atualizar o select de produtos ao carregar a página
         updateProductSelect();
     </script>
 </body>
