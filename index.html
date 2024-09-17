@@ -19,7 +19,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino Apollo</h2>
                 
                 <form id="productForm">
                     <div class="row mb-3">
@@ -76,7 +76,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Inicialize o cliente Supabase com suas próprias credenciais (URL e Key)
+        // Inicialize o cliente Supabase
         const supabaseUrl = 'https://tphqgrhjuxzgfbvoetlx.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaHFncmhqdXh6Z2Zidm9ldGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2MDc4NDgsImV4cCI6MjA0MjE4Mzg0OH0.mjmTC1jLp0eU5_KFYeZSnvaI0EqRNIYdAsxT3ZFC2A0';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -97,15 +97,18 @@
 
         // Função para salvar produto no Supabase
         async function saveProduct(product) {
+            console.log('Tentando salvar o produto:', product);
             const { data, error } = await supabase
                 .from('products')
                 .upsert(product, { onConflict: 'produto' });
-            
+
             if (error) {
                 console.error('Erro ao salvar produto:', error);
+                alert('Erro ao salvar o produto no Supabase: ' + error.message);
                 return false;
             }
 
+            console.log('Produto salvo com sucesso:', data);
             return true;
         }
 
@@ -115,7 +118,7 @@
                 .from('products')
                 .delete()
                 .eq('produto', produto);
-            
+
             if (error) {
                 console.error('Erro ao deletar produto:', error);
                 return false;
@@ -127,6 +130,17 @@
         document.getElementById('productForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            // Validação manual dos campos
+            if (!document.getElementById('produto').value) {
+                alert('Por favor, preencha o campo Produto');
+                return;
+            }
+
+            if (!document.getElementById('repeticao').value) {
+                alert('Por favor, preencha o campo Repetição');
+                return;
+            }
+
             const product = {
                 produto: document.getElementById('produto').value,
                 repeticao: document.getElementById('repeticao').value,
