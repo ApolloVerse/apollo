@@ -50,7 +50,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino N</h2>
                 
                 <form id="productForm" class="mb-4">
                     <div class="row g-3">
@@ -109,6 +109,13 @@
 
                 <!-- Campo de imagem de fundo oculto -->
                 <input type="file" id="backgroundImage" accept="image/*" style="display: none;">
+                
+                <!-- Botões de Importar e Exportar Dados -->
+                <div class="mt-4">
+                    <button id="exportData" class="btn btn-success">Exportar Dados</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button id="importData" class="btn btn-primary">Importar Dados</button>
+                </div>
             </div>
         </div>
     </div>
@@ -281,6 +288,41 @@
             }
 
             reader.readAsDataURL(file);
+        });
+
+        // Função para exportar os dados salvos localmente
+        $('#exportData').on('click', function() {
+            const dataStr = JSON.stringify(products, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'products.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Função para importar dados de um arquivo
+        $('#importData').on('click', function() {
+            $('#importFile').click();
+        });
+
+        $('#importFile').on('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                try {
+                    products = JSON.parse(event.target.result);
+                    updateProductSelect();
+                    saveToLocalStorage();
+                    alert('Dados importados com sucesso!');
+                } catch (error) {
+                    alert('Erro ao importar dados. Verifique o formato do arquivo.');
+                }
+            }
+
+            reader.readAsText(file);
         });
 
         loadFromLocalStorage();
