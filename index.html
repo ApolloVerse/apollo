@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lino</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .form-container {
             background-color: #f8f9fa;
@@ -18,7 +19,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino Apollo</h2>
                 
                 <form id="productForm">
                     <div class="row mb-3">
@@ -47,6 +48,11 @@
                             <input type="text" class="form-control" id="observacoes" placeholder="Observações">
                         </div>
                     </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <input type="number" class="form-control" id="perimetro" placeholder="Perímetro" step="any">
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </form>
 
@@ -70,48 +76,83 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-        let products = {};
+        // Inicialize o cliente Supabase
+        const supabaseUrl = 'https://tphqgrhjuxzgfbvoetlx.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaHFncmhqdXh6Z2Zidm9ldGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2MDc4NDgsImV4cCI6MjA0MjE4Mzg0OH0.mjmTC1jLp0eU5_KFYeZSnvaI0EqRNIYdAsxT3ZFC2A0'
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
-        document.getElementById('productForm').addEventListener('submit', function(e) {
+        // Função para carregar produtos do Supabase
+        async function loadProducts() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+            
+            if (error) {
+                console.error('Erro ao carregar produtos:', error)
+                return
+            }
+
+            updateProductSelect(data)
+        }
+
+        // Função para salvar produto no Supabase
+        async function saveProduct(product) {
+            const { data, error } = await supabase
+                .from('products')
+                .upsert(product, { onConflict: 'produto' })
+            
+            if (error) {
+                console.error('Erro ao salvar produto:', error)
+                return false
+            }
+
+            return true
+        }
+
+        // Função para deletar produto do Supabase
+        async function deleteProduct(produto) {
+            const { error } = await supabase
+                .from('products')
+                .delete()
+                .eq('produto', produto)
+            
+            if (error) {
+                console.error('Erro ao deletar produto:', error)
+                return false
+            }
+
+            return true
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const produto = document.getElementById('produto').value;
-            const repeticao = document.getElementById('repeticao').value;
-            const chagrim = document.getElementById('chagrim').value;
-            const corte = document.getElementById('corte').value;
-            const velocidade = document.getElementById('velocidade').value;
-            const observacoes = document.getElementById('observacoes').value;
-
-            if (!products[produto]) {
-                products[produto] = {
-                    repeticao: repeticao,
-                    chagrim: chagrim,
-                    corte: corte,
-                    velocidade: velocidade,
-                    observacoes: [observacoes],
-                };
-            } else {
-                products[produto].repeticao = repeticao;
-                products[produto].chagrim = chagrim;
-                products[produto].corte = corte;
-                products[produto].velocidade = velocidade;
-                products[produto].observacoes.unshift(observacoes);
+            const product = {
+                produto: document.getElementById('produto').value,
+                repeticao: document.getElementById('repeticao').value,
+                chagrim: document.getElementById('chagrim').value,
+                corte: document.getElementById('corte').value,
+                velocidade: document.getElementById('velocidade').value,
+                observacoes: document.getElementById('observacoes').value,
+                perimetro: document.getElementById('perimetro').value // Novo campo de Perímetro
             }
 
-            updateProductSelect();
-            showSuccessMessage();
-            this.reset();
+            if (await saveProduct(product)) {
+                showSuccessMessage();
+                this.reset();
+                loadProducts();
+            }
         });
 
-        function updateProductSelect() {
+        function updateProductSelect(products) {
             const select = document.getElementById('productSelect');
             select.innerHTML = '<option value="">Selecione um produto</option>';
-            for (let produto in products) {
+            products.forEach(product => {
                 const option = document.createElement('option');
-                option.value = produto;
-                option.textContent = produto;
+                option.value = product.produto;
+                option.textContent = product.produto;
                 select.appendChild(option);
-            }
+            });
         }
 
         function showSuccessMessage() {
@@ -122,24 +163,31 @@
             }, 3000);
         }
 
-        document.getElementById('productSelect').addEventListener('change', function() {
+        document.getElementById('productSelect').addEventListener('change', async function() {
             const productDetails = document.getElementById('productDetails');
             const deleteButton = document.getElementById('deleteProduct');
             
             if (this.value) {
-                const product = products[this.value];
-                let observacoesHtml = product.observacoes.map((obs, index) => 
-                    `<p>${index + 1}. ${obs}</p>`
-                ).join('');
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('produto', this.value)
+                    .single()
+
+                if (error) {
+                    console.error('Erro ao buscar detalhes do produto:', error)
+                    return
+                }
 
                 productDetails.innerHTML = `
-                    <h4>${this.value}</h4>
-                    <p><strong>Repetição:</strong> ${product.repeticao}</p>
-                    <p><strong>Chagrim:</strong> ${product.chagrim}</p>
-                    <p><strong>Corte:</strong> ${product.corte}</p>
-                    <p><strong>Velocidade:</strong> ${product.velocidade}</p>
+                    <h4>${data.produto}</h4>
+                    <p><strong>Repetição:</strong> ${data.repeticao}</p>
+                    <p><strong>Chagrim:</strong> ${data.chagrim}</p>
+                    <p><strong>Corte:</strong> ${data.corte}</p>
+                    <p><strong>Velocidade:</strong> ${data.velocidade}</p>
+                    <p><strong>Perímetro:</strong> ${data.perimetro}</p>
                     <h5>Observações:</h5>
-                    ${observacoesHtml}
+                    <p>${data.observacoes}</p>
                 `;
                 deleteButton.style.display = 'block';
             } else {
@@ -148,15 +196,19 @@
             }
         });
 
-        document.getElementById('deleteProduct').addEventListener('click', function() {
+        document.getElementById('deleteProduct').addEventListener('click', async function() {
             const select = document.getElementById('productSelect');
             if (select.value) {
-                delete products[select.value];
-                updateProductSelect();
-                document.getElementById('productDetails').innerHTML = '';
-                this.style.display = 'none';
+                if (await deleteProduct(select.value)) {
+                    loadProducts();
+                    document.getElementById('productDetails').innerHTML = '';
+                    this.style.display = 'none';
+                }
             }
         });
+
+        // Carregue os produtos quando a página carregar
+        loadProducts();
     </script>
 </body>
 </html>
