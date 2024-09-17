@@ -103,7 +103,7 @@
                     </select>
                 </div>
 
-                <div id="productDetails" class="mt-3"></div>
+                <div id="productDetails" class="mt-3" style="display: none;"></div>
 
                 <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
 
@@ -216,6 +216,7 @@
                     <h5>Observações:</h5>
                     ${observacoesHtml}
                 `);
+                productDetails.show();
                 deleteButton.show();
 
                 $('#produto').val(this.value);
@@ -227,6 +228,7 @@
                 $('#observacoes').val('');
             } else {
                 productDetails.html('');
+                productDetails.hide();
                 deleteButton.hide();
             }
         });
@@ -237,6 +239,7 @@
                 delete products[select.val()];
                 updateProductSelect();
                 $('#productDetails').html('');
+                $('#productDetails').hide();
                 $(this).hide();
                 $('#productForm')[0].reset();
                 saveToLocalStorage();
