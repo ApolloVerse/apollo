@@ -3,57 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lino Apollo</title>
+    <title>APOLLO - Lino</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
     <style>
+        body {
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: inherit;
+            filter: blur(5px);
+            z-index: -1;
+        }
         .form-container {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: rgba(248, 249, 250, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .delete-comment {
+            cursor: pointer;
+            color: #dc3545;
+            margin-left: 10px;
+        }
+        .form-control-sm {
+            height: calc(1.5em + 0.5rem + 2px);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino Apollo</h2>
+            <div class="col-lg-10 form-container">
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
                 
-                <form id="productForm">
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
+                <form id="productForm" class="mb-4">
+                    <div class="row g-3">
+                        <!-- Produto (sempre em uma linha separada) -->
+                        <div class="col-12 col-md-6">
                             <input type="text" class="form-control" id="produto" placeholder="Produto" required>
                         </div>
-                        <div class="col-md-2 mb-3 mb-md-0">
-                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required>
+                        
+                        <!-- Repetição, Corte, Perímetro -->
+                        <div class="col-4 col-md-2">
+                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required maxlength="4">
                         </div>
-                        <div class="col-md-2 mb-3 mb-md-0">
+                        <div class="col-4 col-md-2">
+                            <input type="text" class="form-control" id="corte" placeholder="Corte" step="any">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <input type="text" class="form-control" id="perimetro" placeholder="Perímetro">
+                        </div>
+                        
+                        <!-- Velocidade e Chagrim -->
+                        <div class="col-6 col-md-3">
+                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
+                        </div>
+                        <div class="col-6 col-md-3">
                             <select class="form-select" id="chagrim">
                                 <option value="">Chagrim</option>
                                 <option value="Sim">Sim</option>
                                 <option value="Não">Não</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
-                        </div>
-                        <div class="col-md-6">
+                        
+                        <!-- Observações (sempre em uma linha separada) -->
+                        <div class="col-12">
                             <input type="text" class="form-control" id="observacoes" placeholder="Observações">
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <input type="number" class="form-control" id="perimetro" placeholder="Perímetro" step="any">
-                        </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
                 </form>
 
                 <div id="successMessage" class="alert alert-success mt-3" role="alert" style="display: none;">
@@ -67,162 +103,187 @@
                     </select>
                 </div>
 
-                <div id="productDetails"></div>
+                <div id="productDetails" class="mt-3"></div>
 
                 <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
+
+                <!-- Campo de imagem de fundo oculto -->
+                <input type="file" id="backgroundImage" accept="image/*" style="display: none;">
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Inicialize o cliente Supabase
-        const supabaseUrl = 'https://tphqgrhjuxzgfbvoetlx.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaHFncmhqdXh6Z2Zidm9ldGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2MDc4NDgsImV4cCI6MjA0MjE4Mzg0OH0.mjmTC1jLp0eU5_KFYeZSnvaI0EqRNIYdAsxT3ZFC2A0';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        let products = {};
 
-        // Função para carregar produtos do Supabase
-        async function loadProducts() {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*');
-            
-            if (error) {
-                console.error('Erro ao carregar produtos:', error);
-                return;
+        function loadFromLocalStorage() {
+            const savedProducts = localStorage.getItem('products');
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+                updateProductSelect();
             }
 
-            updateProductSelect(data);
-        }
-
-        // Função para salvar produto no Supabase
-        async function saveProduct(product) {
-            console.log('Tentando salvar o produto:', product);
-            const { data, error } = await supabase
-                .from('products')
-                .upsert(product, { onConflict: 'produto' });
-
-            if (error) {
-                console.error('Erro ao salvar produto:', error);
-                alert('Erro ao salvar o produto no Supabase: ' + error.message);
-                return false;
+            const backgroundImage = localStorage.getItem('backgroundImage');
+            if (backgroundImage) {
+                document.body.style.backgroundImage = `url(${backgroundImage})`;
             }
-
-            console.log('Produto salvo com sucesso:', data);
-            return true;
         }
 
-        // Função para deletar produto do Supabase
-        async function deleteProduct(produto) {
-            const { error } = await supabase
-                .from('products')
-                .delete()
-                .eq('produto', produto);
-
-            if (error) {
-                console.error('Erro ao deletar produto:', error);
-                return false;
-            }
-
-            return true;
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
         }
 
-        document.getElementById('productForm').addEventListener('submit', async function(e) {
+        function parseDecimalInput(value) {
+            return parseFloat(value.replace(',', '.'));
+        }
+
+        $('#productForm').on('submit', function(e) {
             e.preventDefault();
             
-            // Validação manual dos campos
-            if (!document.getElementById('produto').value) {
-                alert('Por favor, preencha o campo Produto');
-                return;
+            const produto = $('#produto').val().toUpperCase();
+            const repeticao = $('#repeticao').val();
+            const chagrim = $('#chagrim').val();
+            const corte = parseDecimalInput($('#corte').val());
+            const velocidade = $('#velocidade').val();
+            const perimetro = parseDecimalInput($('#perimetro').val());
+            const observacoes = $('#observacoes').val();
+
+            if (!products[produto]) {
+                products[produto] = {
+                    repeticao: repeticao,
+                    chagrim: chagrim,
+                    corte: corte,
+                    velocidade: velocidade,
+                    perimetro: perimetro,
+                    observacoes: [observacoes],
+                };
+            } else {
+                products[produto].repeticao = repeticao;
+                products[produto].chagrim = chagrim;
+                products[produto].corte = corte;
+                products[produto].velocidade = velocidade;
+                products[produto].perimetro = perimetro;
+                if (observacoes) {
+                    products[produto].observacoes.unshift(observacoes);
+                }
             }
 
-            if (!document.getElementById('repeticao').value) {
-                alert('Por favor, preencha o campo Repetição');
-                return;
-            }
-
-            const product = {
-                produto: document.getElementById('produto').value,
-                repeticao: document.getElementById('repeticao').value,
-                chagrim: document.getElementById('chagrim').value,
-                corte: document.getElementById('corte').value,
-                velocidade: document.getElementById('velocidade').value,
-                observacoes: document.getElementById('observacoes').value,
-                perimetro: document.getElementById('perimetro').value // Novo campo de Perímetro
-            };
-
-            if (await saveProduct(product)) {
-                showSuccessMessage();
-                this.reset();
-                loadProducts();
-            }
+            updateProductSelect();
+            saveToLocalStorage();
+            showSuccessMessage();
+            this.reset();
         });
 
-        function updateProductSelect(products) {
-            const select = document.getElementById('productSelect');
-            select.innerHTML = '<option value="">Selecione um produto</option>';
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.produto;
-                option.textContent = product.produto;
-                select.appendChild(option);
-            });
+        function updateProductSelect() {
+            const select = $('#productSelect');
+            select.html('<option value="">Selecione um produto</option>');
+            for (let produto in products) {
+                select.append(`<option value="${produto}">${produto}</option>`);
+            }
         }
 
         function showSuccessMessage() {
-            const successMessage = document.getElementById('successMessage');
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
+            $('#successMessage').show().delay(3000).fadeOut();
         }
 
-        document.getElementById('productSelect').addEventListener('change', async function() {
-            const productDetails = document.getElementById('productDetails');
-            const deleteButton = document.getElementById('deleteProduct');
+        $('#productSelect').on('change', function() {
+            const productDetails = $('#productDetails');
+            const deleteButton = $('#deleteProduct');
             
             if (this.value) {
-                const { data, error } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('produto', this.value)
-                    .single();
+                const product = products[this.value];
+                let observacoesHtml = product.observacoes.map((obs, index) => 
+                    `<p>${index + 1}. ${obs} <span class="delete-comment" data-index="${index}">❌</span></p>`
+                ).join('');
 
-                if (error) {
-                    console.error('Erro ao buscar detalhes do produto:', error);
-                    return;
-                }
-
-                productDetails.innerHTML = `
-                    <h4>${data.produto}</h4>
-                    <p><strong>Repetição:</strong> ${data.repeticao}</p>
-                    <p><strong>Chagrim:</strong> ${data.chagrim}</p>
-                    <p><strong>Corte:</strong> ${data.corte}</p>
-                    <p><strong>Velocidade:</strong> ${data.velocidade}</p>
-                    <p><strong>Perímetro:</strong> ${data.perimetro}</p>
+                productDetails.html(`
+                    <h4>${this.value}</h4>
+                    <p><strong>Repetição:</strong> ${product.repeticao}</p>
+                    <p><strong>Chagrim:</strong> ${product.chagrim}</p>
+                    <p><strong>Corte:</strong> ${product.corte}</p>
+                    <p><strong>Velocidade:</strong> ${product.velocidade}</p>
+                    <p><strong>Perímetro:</strong> ${product.perimetro}</p>
                     <h5>Observações:</h5>
-                    <p>${data.observacoes}</p>
-                `;
-                deleteButton.style.display = 'block';
+                    ${observacoesHtml}
+                `);
+                deleteButton.show();
+
+                $('#produto').val(this.value);
+                $('#repeticao').val(product.repeticao);
+                $('#chagrim').val(product.chagrim);
+                $('#corte').val(product.corte);
+                $('#velocidade').val(product.velocidade);
+                $('#perimetro').val(product.perimetro);
+                $('#observacoes').val('');
             } else {
-                productDetails.innerHTML = '';
-                deleteButton.style.display = 'none';
+                productDetails.html('');
+                deleteButton.hide();
             }
         });
 
-        document.getElementById('deleteProduct').addEventListener('click', async function() {
-            const select = document.getElementById('productSelect');
-            if (select.value) {
-                if (await deleteProduct(select.value)) {
-                    loadProducts();
-                    document.getElementById('productDetails').innerHTML = '';
-                    this.style.display = 'none';
-                }
+        $('#deleteProduct').on('click', function() {
+            const select = $('#productSelect');
+            if (select.val()) {
+                delete products[select.val()];
+                updateProductSelect();
+                $('#productDetails').html('');
+                $(this).hide();
+                $('#productForm')[0].reset();
+                saveToLocalStorage();
             }
         });
 
-        // Carregue os produtos quando a página carregar
-        loadProducts();
+        $(document).on('click', '.delete-comment', function() {
+            const index = $(this).data('index');
+            const produto = $('#productSelect').val();
+            products[produto].observacoes.splice(index, 1);
+            $('#productSelect').trigger('change');
+            saveToLocalStorage();
+        });
+
+        $('#produto').autocomplete({
+            source: function(request, response) {
+                var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                response($.grep(Object.keys(products), function(item) {
+                    return matcher.test(item);
+                }));
+            },
+            select: function(event, ui) {
+                $('#productSelect').val(ui.item.value).trigger('change');
+            }
+        });
+
+        $('#produto').on('input', function() {
+            $(this).val($(this).val().toUpperCase());
+        });
+
+        $('#repeticao').on('input', function() {
+            if ($(this).val().length > 4) {
+                $(this).val($(this).val().slice(0, 4));
+            }
+        });
+
+        $('#corte, #perimetro').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9,.-]/g, ''));
+        });
+
+        $('#backgroundImage').on('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = event.target.result;
+                document.body.style.backgroundImage = `url(${img})`;
+                localStorage.setItem('backgroundImage', img);
+            }
+
+            reader.readAsDataURL(file);
+        });
+
+        loadFromLocalStorage();
     </script>
 </body>
 </html>
