@@ -3,76 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APOLLO - Lino</title>
+    <title>Lino</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
     <style>
-        body {
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            min-height: 100vh;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            background: inherit;
-            filter: blur(5px);
-            z-index: -1;
-        }
         .form-container {
-            background-color: rgba(248, 249, 250, 0.9);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10 form-container">
-                <h2 class="text-center mb-4">Lino</h2>
+            <div class="col-md-10 form-container">
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino Apollo</h2>
                 
-                <form id="productForm" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
+                <form id="productForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
                             <input type="text" class="form-control" id="produto" placeholder="Produto" required>
                         </div>
-                        <div class="col-4 col-md-2">
-                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required maxlength="4">
+                        <div class="col-md-2 mb-3 mb-md-0">
+                            <input type="number" class="form-control" id="repeticao" placeholder="Repetição" required>
                         </div>
-                        <div class="col-4 col-md-2">
-                            <input type="text" class="form-control" id="corte" placeholder="Corte">
-                        </div>
-                        <div class="col-4 col-md-2">
-                            <input type="text" class="form-control" id="perimetro" placeholder="Perímetro">
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
-                        </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-md-2 mb-3 mb-md-0">
                             <select class="form-select" id="chagrim">
                                 <option value="">Chagrim</option>
                                 <option value="Sim">Sim</option>
                                 <option value="Não">Não</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" id="corte" placeholder="Corte" step="any">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <input type="text" class="form-control" id="velocidade" placeholder="Velocidade">
+                        </div>
+                        <div class="col-md-6">
                             <input type="text" class="form-control" id="observacoes" placeholder="Observações">
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-primary">Salvar</button>
-                    </div>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
                 </form>
 
                 <div id="successMessage" class="alert alert-success mt-3" role="alert" style="display: none;">
@@ -86,136 +61,102 @@
                     </select>
                 </div>
 
-                <div id="productDetails" class="mt-3"></div>
+                <div id="productDetails"></div>
+
                 <button id="deleteProduct" class="btn btn-danger mt-3" style="display: none;">Deletar Produto</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuKapVSN3xzNydWnTYFyF74tWep6KSfOk",
-            authDomain: "apollov-1.firebaseapp.com",
-            databaseURL: "https://apollov-1-default-rtdb.firebaseio.com",
-            projectId: "apollov-1",
-            storageBucket: "apollov-1.appspot.com",
-            messagingSenderId: "304916490174",
-            appId: "1:304916490174:web:505af02492263ed7733bef"
-        };
+        let products = {};
 
-        // Inicializando o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Função para salvar os dados no Firebase
-        document.getElementById('productForm').addEventListener('submit', function (e) {
+        document.getElementById('productForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
-            const produto = document.getElementById('produto').value.toUpperCase();
+            
+            const produto = document.getElementById('produto').value;
             const repeticao = document.getElementById('repeticao').value;
             const chagrim = document.getElementById('chagrim').value;
-            const corte = parseFloat(document.getElementById('corte').value) || 0;
+            const corte = document.getElementById('corte').value;
             const velocidade = document.getElementById('velocidade').value;
-            const perimetro = parseFloat(document.getElementById('perimetro').value) || 0;
             const observacoes = document.getElementById('observacoes').value;
 
-            const newProduct = {
-                repeticao,
-                chagrim,
-                corte,
-                velocidade,
-                perimetro,
-                observacoes: [observacoes],
-            };
+            if (!products[produto]) {
+                products[produto] = {
+                    repeticao: repeticao,
+                    chagrim: chagrim,
+                    corte: corte,
+                    velocidade: velocidade,
+                    observacoes: [observacoes],
+                };
+            } else {
+                products[produto].repeticao = repeticao;
+                products[produto].chagrim = chagrim;
+                products[produto].corte = corte;
+                products[produto].velocidade = velocidade;
+                products[produto].observacoes.unshift(observacoes);
+            }
 
-            firebase.database().ref('products/' + produto).set(newProduct)
-                .then(() => {
-                    showSuccessMessage();
-                    updateProductSelect();
-                })
-                .catch(error => {
-                    console.error('Erro ao salvar os dados:', error);
-                });
-
+            updateProductSelect();
+            showSuccessMessage();
             this.reset();
         });
 
-        // Função para mostrar a mensagem de sucesso
+        function updateProductSelect() {
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">Selecione um produto</option>';
+            for (let produto in products) {
+                const option = document.createElement('option');
+                option.value = produto;
+                option.textContent = produto;
+                select.appendChild(option);
+            }
+        }
+
         function showSuccessMessage() {
             const successMessage = document.getElementById('successMessage');
             successMessage.style.display = 'block';
-            setTimeout(() => successMessage.style.display = 'none', 3000);
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
         }
 
-        // Função para atualizar o select de produtos
-        function updateProductSelect() {
-            const productSelect = document.getElementById('productSelect');
-            firebase.database().ref('products').once('value')
-                .then(snapshot => {
-                    if (snapshot.exists()) {
-                        const products = snapshot.val();
-                        productSelect.innerHTML = '<option value="">Selecione um produto</option>';
-                        for (let key in products) {
-                            productSelect.innerHTML += `<option value="${key}">${key}</option>`;
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar os produtos:', error);
-                });
-        }
+        document.getElementById('productSelect').addEventListener('change', function() {
+            const productDetails = document.getElementById('productDetails');
+            const deleteButton = document.getElementById('deleteProduct');
+            
+            if (this.value) {
+                const product = products[this.value];
+                let observacoesHtml = product.observacoes.map((obs, index) => 
+                    `<p>${index + 1}. ${obs}</p>`
+                ).join('');
 
-        // Função para exibir detalhes do produto selecionado
-        document.getElementById('productSelect').addEventListener('change', function () {
-            const produto = this.value;
-            if (produto) {
-                firebase.database().ref('products/' + produto).once('value')
-                    .then(snapshot => {
-                        if (snapshot.exists()) {
-                            const product = snapshot.val();
-                            document.getElementById('productDetails').innerHTML = `
-                                <p><strong>Repetição:</strong> ${product.repeticao}</p>
-                                <p><strong>Corte:</strong> ${product.corte}</p>
-                                <p><strong>Velocidade:</strong> ${product.velocidade}</p>
-                                <p><strong>Perímetro:</strong> ${product.perimetro}</p>
-                                <p><strong>Chagrim:</strong> ${product.chagrim}</p>
-                                <p><strong>Observações:</strong> ${product.observacoes.join(', ')}</p>
-                            `;
-                            document.getElementById('deleteProduct').style.display = 'block';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro ao carregar detalhes do produto:', error);
-                    });
+                productDetails.innerHTML = `
+                    <h4>${this.value}</h4>
+                    <p><strong>Repetição:</strong> ${product.repeticao}</p>
+                    <p><strong>Chagrim:</strong> ${product.chagrim}</p>
+                    <p><strong>Corte:</strong> ${product.corte}</p>
+                    <p><strong>Velocidade:</strong> ${product.velocidade}</p>
+                    <h5>Observações:</h5>
+                    ${observacoesHtml}
+                `;
+                deleteButton.style.display = 'block';
             } else {
+                productDetails.innerHTML = '';
+                deleteButton.style.display = 'none';
+            }
+        });
+
+        document.getElementById('deleteProduct').addEventListener('click', function() {
+            const select = document.getElementById('productSelect');
+            if (select.value) {
+                delete products[select.value];
+                updateProductSelect();
                 document.getElementById('productDetails').innerHTML = '';
-                document.getElementById('deleteProduct').style.display = 'none';
+                this.style.display = 'none';
             }
         });
-
-        // Função para deletar o produto selecionado
-        document.getElementById('deleteProduct').addEventListener('click', function () {
-            const produto = document.getElementById('productSelect').value;
-            if (produto && confirm('Tem certeza que deseja excluir este produto?')) {
-                firebase.database().ref('products/' + produto).remove()
-                    .then(() => {
-                        updateProductSelect();
-                        document.getElementById('productDetails').innerHTML = '';
-                        document.getElementById('deleteProduct').style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error('Erro ao deletar o produto:', error);
-                    });
-            }
-        });
-
-        // Atualizar o select de produtos ao carregar a página
-        updateProductSelect();
     </script>
 </body>
 </html>
