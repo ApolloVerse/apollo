@@ -19,7 +19,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">Lino Apollo</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">Lino</h2>
                 
                 <form id="productForm">
                     <div class="row mb-3">
@@ -81,6 +81,14 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaHFncmhqdXh6Z2Zidm9ldGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2MDc4NDgsImV4cCI6MjA0MjE4Mzg0OH0.mjmTC1jLp0eU5_KFYeZSnvaI0EqRNIYdAsxT3ZFC2A0'
         const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
+        supabase.auth.getSession().then(({ data, error }) => {
+            if (error) {
+                console.error('Erro ao conectar com Supabase:', error);
+            } else {
+                console.log('Conexão com Supabase estabelecida');
+            }
+        });
+
         // Função para carregar produtos do Supabase
         async function loadProducts() {
             const { data, error } = await supabase
@@ -102,11 +110,13 @@
                 .upsert(product, { onConflict: 'produto' })
             
             if (error) {
-                console.error('Erro ao salvar produto:', error)
-                return false
+                console.error('Erro ao salvar produto:', error.message, error.details);
+                alert('Erro ao salvar produto: ' + error.message);
+                return false;
             }
 
-            return true
+            console.log('Produto salvo com sucesso:', data);
+            return true;
         }
 
         // Função para deletar produto do Supabase
@@ -134,13 +144,17 @@
                 corte: document.getElementById('corte').value,
                 velocidade: document.getElementById('velocidade').value,
                 observacoes: document.getElementById('observacoes').value,
-                perimetro: document.getElementById('perimetro').value // Novo campo de Perímetro
+                perimetro: document.getElementById('perimetro').value
             }
+
+            console.log('Tentando salvar produto:', product);
 
             if (await saveProduct(product)) {
                 showSuccessMessage();
                 this.reset();
                 loadProducts();
+            } else {
+                console.error('Falha ao salvar produto');
             }
         });
 
@@ -208,6 +222,19 @@
         });
 
         // Carregue os produtos quando a página carregar
+        async function loadProducts() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+            
+            if (error) {
+                console.error('Erro ao carregar produtos:', error)
+                return
+            }
+
+            console.log('Produtos carregados:', data);
+            updateProductSelect(data)
+        }
         loadProducts();
     </script>
 </body>
