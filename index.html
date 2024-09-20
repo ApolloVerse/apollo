@@ -53,7 +53,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10 form-container">
-                <h2 id="formulário-de-produto" class="text-center mb-4">APOLLO 2024</h2>
+                <h2 id="formulário-de-produto" class="text-center mb-4">LINO - APOLLO 2024</h2>
                 
                 <form id="productForm" class="mb-4">
                     <div class="row g-3">
@@ -190,7 +190,11 @@
         function updateProductSelect() {
             const select = $('#productSelect');
             select.html('<option value="">Selecione um produto</option>');
-            for (let produto in products) {
+            
+            // Criar um array de produtos e ordená-lo alfabeticamente
+            const sortedProducts = Object.keys(products).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            
+            for (let produto of sortedProducts) {
                 select.append(`<option value="${produto}">${produto}</option>`);
             }
         }
